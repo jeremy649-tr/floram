@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Feliz Día de las Flores Amarillas Amor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --amarillo: #ffd23f;
+    --amarillo-suave: #ffe27a;
+    --negro: #060502;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    background: var(--negro);
+    color: var(--amarillo-suave);
+    font-family: 'Caveat', cursive;
+    overflow-x: hidden;
+  }
+
+  /* ============ POLVO DORADO AMBIENTAL (toda la página) ============ */
+  #polvo-ambiental{
+    position: fixed; inset:0; z-index:1; pointer-events:none;
+  }
+
+  /* ============ PANTALLA DE INICIO ============ */
+  #start-screen{
+    position: fixed; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at 50% 60%, #1a1508 0%, var(--negro) 60%);
+    z-index: 80; cursor:pointer;
+    transition: opacity 1s ease;
+  }
+  #start-screen.oculto{ opacity:0; pointer-events:none; }
+  .toca-texto{
+    font-size: 46px; letter-spacing:1px;
+    text-shadow: 0 0 10px var(--amarillo), 0 0 26px var(--amarillo);
+  }
+  .toca-sub{
+    font-family:'Segoe UI', sans-serif; font-size:13px; letter-spacing:2px;
+    color:#c9a94a; margin-top:6px; text-transform:uppercase;
+  }
+  .boton-play{
+    position:relative; margin-top: 22px; width:96px; height:96px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(circle at 35% 30%, #fff3c4, #ffb703 75%);
+    box-shadow: 0 0 30px rgba(255,183,3,.75), 0 0 60px rgba(255,183,3,.35);
+    animation: pulso 2.2s ease-in-out infinite;
+  }
+  .boton-play::before{
+    content:''; position:absolute; inset:-14px; border-radius:50%;
+    border:1px solid rgba(255,210,63,.5);
+    animation: anillo 2.2s ease-out infinite;
+  }
+  .boton-play span{ font-size:34px; margin-left:5px; }
+  @keyframes pulso{ 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.08); } }
+  @keyframes anillo{ 0%{ transform:scale(.8); opacity:.9; } 100%{ transform:scale(1.5); opacity:0; } }
+
+  /* ============ ESCENA PRINCIPAL ============ */
+  #escena{
+    position: relative; width:100%; min-height: 3600px;
+    background: radial-gradient(ellipse at 50% 0%, #16110a 0%, var(--negro) 55%);
+    overflow:hidden; display:none;
+  }
+  #escena.visible{ display:block; }
+
+  #capa-estrellas{ position:absolute; inset:0; z-index:0; }
+  .estrella{ position:absolute; background:#fff; border-radius:50%; animation: titilar linear infinite; }
+  @keyframes titilar{ 0%,100%{ opacity:.1; } 50%{ opacity:1; } }
+
+  #capa-petalos{ position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden; }
+  .petalo{ position:absolute; top:-30px; font-size:20px; opacity:.85; filter: drop-shadow(0 0 6px rgba(255,210,63,.8)); }
+
+  .encabezado{
+    position:relative; z-index:5;
+    display:flex; align-items:flex-start; justify-content:space-between;
+    padding: 34px 24px 0;
+  }
+  .encabezado h1{
+    font-size: 40px; line-height:1.15; max-width: 260px;
+    background: linear-gradient(100deg, #ffe27a 20%, #fff7d6 40%, #ffe27a 60%);
+    background-size: 200% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation: brillo 4s linear infinite;
+    filter: drop-shadow(0 0 10px rgba(255,210,63,.7));
+  }
+  @keyframes brillo{ to{ background-position: -200% center; } }
+  .encabezado .girasol-grande{ font-size: 60px; filter: drop-shadow(0 0 14px var(--amarillo)); animation: flotar 4s ease-in-out infinite; }
+
+  .nota{
+    position:absolute; z-index:4;
+    display:flex; align-items:flex-start; gap:6px;
+    max-width: 210px; font-size: 19px; line-height:1.25;
+    color: #ffe9ad; text-shadow: 0 0 8px rgba(255,210,63,.7);
+    opacity:0; transform: translateY(18px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  .nota.mostrar{ opacity:1; transform:translateY(0); }
+  .nota::before{ content:"○"; color: var(--amarillo); font-size:12px; margin-top:5px; flex-shrink:0; }
+  .nota.der{ text-align:right; flex-direction:row-reverse; margin-left:auto; }
+
+  .flor-suelta{
+    position:absolute; z-index:4; font-size:42px;
+    filter: drop-shadow(0 0 12px rgba(255,210,63,.85));
+    opacity:0; transform: translateY(18px) scale(.8);
+    transition: opacity 1s ease, transform 1s ease;
+    animation: flotar 5s ease-in-out infinite;
+  }
+  .flor-suelta.grande{ font-size: 70px; }
+  .flor-suelta.mostrar{ opacity:1; transform: translateY(0) scale(1); }
+  @keyframes flotar{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-12px); } }
+
+  .lienzo-caja{
+    position:relative; z-index:3;
+    width:100%; max-width: 500px; height: 460px; margin: 40px auto 0;
+  }
+  .lienzo-caja canvas{ width:100%; height:100%; display:block; }
+  .texto-sobre-lienzo{
+    position:relative; z-index:5; text-align:center; font-size:30px;
+    margin-top: -30px; text-shadow: 0 0 10px var(--amarillo);
+  }
+
+  .separador-cita{
+    position:relative; z-index:5; text-align:center;
+    font-size: 26px; max-width:320px; margin: 70px auto 0;
+    color:#ffe9ad; text-shadow:0 0 8px rgba(255,210,63,.6);
+    opacity:0; transform: translateY(16px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  .separador-cita.mostrar{ opacity:1; transform:translateY(0); }
+
+  .final{ position:relative; z-index:5; text-align:center; padding: 90px 30px 220px; }
+  .final .ramo{ font-size:54px; filter: drop-shadow(0 0 18px var(--amarillo)); margin-bottom:10px; }
+  .final h2{ font-size: 42px; text-shadow: 0 0 14px var(--amarillo); margin-bottom: 20px; }
+  .final p{
+    font-family: 'Segoe UI', sans-serif; font-size: 17px; line-height:1.6;
+    max-width: 440px; margin: 0 auto 12px; color:#ffe9ad;
+  }
+  .final .firma{ margin-top: 26px; font-size:32px; color:var(--amarillo); text-shadow:0 0 14px var(--amarillo); }
+
+  #btn-corazon{
+    position: fixed; right: 20px; bottom: 26px; z-index: 70;
+    width: 58px; height:58px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffe27a, #ffb703 70%);
+    display:none; align-items:center; justify-content:center;
+    box-shadow: 0 0 22px rgba(255,183,3,.8);
+    border:none; cursor:pointer; font-size:24px;
+  }
+  #btn-corazon.visible{ display:flex; }
+  #btn-musica{
+    position: fixed; left: 20px; bottom: 26px; z-index: 70;
+    width: 50px; height:50px; border-radius:50%;
+    background: rgba(0,0,0,.55); border:1px solid rgba(255,210,63,.6);
+    display:none; align-items:center; justify-content:center;
+    color: var(--amarillo-suave); font-size:19px; cursor:pointer;
+  }
+  #btn-musica.visible{ display:flex; }
+
+  #modal-mensaje{
+    position: fixed; inset:0; z-index:90; background: rgba(0,0,0,.85);
+    display:none; align-items:center; justify-content:center; padding: 30px;
+  }
+  #modal-mensaje.visible{ display:flex; }
+  .tarjeta-mensaje{
+    background: radial-gradient(ellipse at 50% 0%, #1a1408, #050402);
+    border: 1px solid rgba(255,210,63,.5); border-radius: 18px;
+    padding: 34px 26px; max-width: 380px; text-align:center;
+    box-shadow: 0 0 40px rgba(255,183,3,.35);
+  }
+  .tarjeta-mensaje h3{ font-size: 32px; text-shadow:0 0 10px var(--amarillo); margin-bottom: 14px; }
+  .tarjeta-mensaje p{ font-family:'Segoe UI', sans-serif; font-size:16px; line-height:1.6; color:#ffe9ad; }
+  .tarjeta-mensaje button{
+    margin-top: 22px; background:none; border:1px solid var(--amarillo);
+    color: var(--amarillo-suave); padding: 8px 22px; border-radius: 30px;
+    font-family:'Segoe UI', sans-serif; cursor:pointer;
+  }
+
+  #capa-rafaga{ position:fixed; inset:0; z-index:85; pointer-events:none; }
+  .particula-rafaga{ position:absolute; font-size:20px; }
+</style>
+</head>
+<body>
+
+  <!-- ============================================================
+       AGREGA "musica.mp3" en la misma carpeta que este HTML
+       para que suene al tocar el botón de inicio.
+  ============================================================= -->
+  <audio id="musica-fondo" loop>
+    <source src="musica.mp3" type="audio/mpeg">
+  </audio>
+
+  <canvas id="polvo-ambiental"></canvas>
+
+  <!-- PANTALLA DE INICIO -->
+  <div id="start-screen">
+    <div class="toca-texto">Toca para iniciar</div>
+    <div class="boton-play"><span>▶</span></div>
+    <div class="toca-sub"></div>
+  </div>
+
+  <!-- ESCENA -->
+  <div id="escena">
+    <div id="capa-estrellas"></div>
+    <div id="capa-petalos"></div>
+
+    <div class="encabezado">
+      <h1>Feliz Día de las<br>Flores Amarillas Amor</h1>
+      <div class="girasol-grande">🌻</div>
+    </div>
+
+    <div class="nota" style="top:230px; left:6%;">Esta flor guarda un mensaje solo para ti</div>
+    <div class="nota der" style="top:280px; right:6%; left:auto;">No necesito un motivo para quererte</div>
+    <div class="nota" style="top:360px; left:8%;">Hoy el amarillo lleva tu nombre linda</div>
+    <div class="nota der" style="top:420px; right:8%; left:auto;">Aquí siempre tienes un lugar donde puedes encontrar amor </div>
+    <div class="flor-suelta" style="top:480px; left:70%;">🌻</div>
+    <div class="nota" style="top:560px; left:10%;">Pétalos dorados, solo para ti</div>
+    <div class="nota der" style="top:610px; right:10%; left:auto;">Feliz día, contigo todo es mejor mi vida </div>
+    <div class="flor-suelta grande" style="top:660px; left:6%;">🌻</div>
+    <div class="nota" style="top:660px; left:46%;">Un gracias que no necesita fecha para decirte lo mucho que te amo </div>
+
+    <div class="lienzo-caja"><canvas id="lienzoMonticulo"></canvas></div>
+
+    <div class="separador-cita">"Como el girasol que busca al sol , mi mirada siempre te encuentra"</div>
+
+    <div class="nota" style="top:1240px; left:8%;">Que esta flor te alcance hoy quisiera que fuera de otra forma amor para verte y decirte lo importante que eres </div>
+    <div class="nota der" style="top:1380px; right:8%; left:auto;">Un ramo de gracias por estar ahí siempre conmigo </div>
+    <div class="flor-suelta" style="top:1440px; left:60%;">🌻</div>
+    <div class="nota" style="top:1387px; left:10%;"> Pienso en ti a cada momento del dia </div>
+    <div class="nota der" style="top:1600px; right:10%; left:auto;">Contigo todo se siente en calma</div>
+    <div class="flor-suelta grande" style="top:1660px; left:70%;">🌻</div>
+    <div class="nota" style="top:1750px; left:8%;">El campo entero te manda saludos porque les hable de ti y lo feliz que me haces </div>
+    <div class="nota der" style="top:1810px; right:8%; left:auto;">El amarillo también dice te quiero</div>
+    <div class="flor-suelta" style="top:1900px; left:14%;">🌻</div>
+    <div class="nota" style="top:1980px; left:40%;">Eres mi persona favorita</div>
+
+    <div class="lienzo-caja" style="height:400px;"><canvas id="lienzoCorazon"></canvas></div>
+    <div class="texto-sobre-lienzo">tu favorito 🌻</div>
+
+    <div class="final">
+      <div class="ramo">💐🌻</div>
+      <h2>Feliz día de las Flores Amarillas, mi amor</h2>
+      <p>Quiero que sepas que eres esa luz amarilla que ilumina mis días,
+         como un girasol que siempre encuentra el sol.</p>
+      <p>Gracias por ser mi compañía, mi alegría y mi flor favorita.</p>
+      <div class="firma">Te quiero mucho 🌻✨</div>
+    </div>
+  </div>
+
+  <button id="btn-corazon">💛</button>
+  <button id="btn-musica">🔊</button>
+  <div id="capa-rafaga"></div>
+
+  <div id="modal-mensaje">
+    <div class="tarjeta-mensaje">
+      <h3>Para ti 🌻</h3>
+      <p>Cada mensaje de esta página es real: eres tú quien le da color a mis días. Hoy quería regalarte flores 
+        aunque esta vez no pueda entregártelas en persona bb pero te las mando de una manera diferente 
+        pero con el mismo cariño y amor que siento por ti.Cada flor representa una razón por la que te quiero, 
+        y aunque ninguna pueda compararse contigo espero que al verlas recuerdes lo especial que eres para mí
+        Ojalá pronto pueda darte flores personalmente y ver esa hermosa sonrisa que me enamora . Mientras tanto recibe estas
+         florecitas virtuales con un pedacito de mi corazón
+         Feliz Día de las Flores Amarillas Mi Pequeña, Te  amooo.</p>
+      <button id="cerrar-modal">Cerrar</button>
+    </div>
+  </div>
+
+<script>
+  const inicio = document.getElementById('start-screen');
+  const escena = document.getElementById('escena');
+  const musica = document.getElementById('musica-fondo');
+  const btnCorazon = document.getElementById('btn-corazon');
+  const btnMusica = document.getElementById('btn-musica');
+  const modal = document.getElementById('modal-mensaje');
+
+  inicio.addEventListener('click', () => {
+    inicio.classList.add('oculto');
+    escena.classList.add('visible');
+    setTimeout(() => { inicio.style.display = 'none'; }, 1000);
+
+    musica.play().then(() => btnMusica.classList.add('visible')).catch(()=>{});
+
+    generarEstrellas();
+    iniciarPolvoAmbiental();
+    iniciarPetalos();
+    iniciarMonticulo();
+    iniciarCorazon();
+    btnCorazon.classList.add('visible');
+
+    observarRevelado();
+  });
+
+  btnMusica.addEventListener('click', () => {
+    if (musica.paused){ musica.play(); btnMusica.textContent='🔊'; }
+    else { musica.pause(); btnMusica.textContent='🔇'; }
+  });
+
+  btnCorazon.addEventListener('click', () => {
+    modal.classList.add('visible');
+    lanzarRafaga();
+  });
+  document.getElementById('cerrar-modal').addEventListener('click', () => modal.classList.remove('visible'));
+
+  /* ---- Revela notas/flores con scroll usando IntersectionObserver ---- */
+  function observarRevelado(){
+    const obs = new IntersectionObserver((entradas) => {
+      entradas.forEach(e => { if (e.isIntersecting) e.target.classList.add('mostrar'); });
+    }, { threshold: 0.25 });
+    document.querySelectorAll('.nota, .flor-suelta, .separador-cita').forEach(el => obs.observe(el));
+  }
+
+  function generarEstrellas(){
+    const cont = document.getElementById('capa-estrellas');
+    const alto = escena.scrollHeight || 3600;
+    for (let i=0;i<260;i++){
+      const e = document.createElement('div');
+      e.className='estrella';
+      const t = Math.random()*2.6+0.6;
+      e.style.width=t+'px'; e.style.height=t+'px';
+      e.style.top = Math.random()*alto+'px';
+      e.style.left = Math.random()*100+'%';
+      e.style.animationDuration = (2+Math.random()*3)+'s';
+      e.style.animationDelay = (Math.random()*3)+'s';
+      cont.appendChild(e);
+    }
+  }
+
+  /* ---- Pétalos cayendo lentamente por toda la escena ---- */
+  function iniciarPetalos(){
+    const cont = document.getElementById('capa-petalos');
+    function crearPetalo(){
+      const p = document.createElement('div');
+      p.className='petalo';
+      p.textContent = Math.random()<0.5 ? '🌼' : '✨';
+      p.style.left = Math.random()*100+'%';
+      const duracion = 9+Math.random()*8;
+      const deriva = (Math.random()*80-40);
+      p.style.top = (window.scrollY - 60) + 'px';
+      cont.appendChild(p);
+      const inicioY = window.scrollY - 60;
+      const finY = inicioY + window.innerHeight + 700;
+      const t0 = performance.now();
+      function animar(t){
+        const prog = Math.min((t-t0)/(duracion*1000),1);
+        p.style.top = (inicioY + prog*(finY-inicioY)) + 'px';
+        p.style.left = `calc(${p.style.left} + ${deriva*prog}px)`;
+        p.style.opacity = 1-prog;
+        p.style.transform = `rotate(${prog*260}deg)`;
+        if (prog<1) requestAnimationFrame(animar); else p.remove();
+      }
+      requestAnimationFrame(animar);
+    }
+    setInterval(crearPetalo, 900);
+  }
+
+  /* ---- Polvo dorado ambiental, fijo sobre toda la pantalla ---- */
+  function iniciarPolvoAmbiental(){
+    const canvas = document.getElementById('polvo-ambiental');
+    const ctx = canvas.getContext('2d');
+    function ajustar(){
+      canvas.width = innerWidth*devicePixelRatio;
+      canvas.height = innerHeight*devicePixelRatio;
+    }
+    ajustar();
+    window.addEventListener('resize', ajustar);
+
+    const motas = [];
+    for (let i=0;i<70;i++){
+      motas.push({
+        x: Math.random(), y: Math.random(),
+        r: Math.random()*1.4+0.4,
+        vy: (Math.random()*0.06+0.02)/60,
+        fase: Math.random()*Math.PI*2
+      });
+    }
+    let t=0;
+    function loop(){
+      t+=0.02;
+      const w=canvas.width,h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.shadowBlur=4; ctx.shadowColor='rgba(255,210,63,0.7)';
+      motas.forEach(m=>{
+        m.y -= m.vy; if (m.y<-0.02) m.y=1.02;
+        const op = 0.15+0.35*Math.abs(Math.sin(t*0.8+m.fase));
+        ctx.fillStyle = `rgba(255,220,150,${op})`;
+        ctx.beginPath();
+        ctx.arc(m.x*w, m.y*h, m.r*devicePixelRatio, 0, Math.PI*2);
+        ctx.fill();
+      });
+      ctx.shadowBlur=0;
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  /* ---- Ráfaga de corazones al tocar el botón ---- */
+  function lanzarRafaga(){
+    const cont = document.getElementById('capa-rafaga');
+    const cx = window.innerWidth-46, cy = window.innerHeight-56;
+    for (let i=0;i<18;i++){
+      const p = document.createElement('div');
+      p.className='particula-rafaga';
+      p.textContent = Math.random()<0.6 ? '💛' : '🌻';
+      p.style.left = cx+'px'; p.style.top = cy+'px';
+      cont.appendChild(p);
+      const ang = Math.random()*Math.PI*2;
+      const dist = 90+Math.random()*140;
+      const destX = cx+Math.cos(ang)*dist;
+      const destY = cy+Math.sin(ang)*dist - 60;
+      const t0 = performance.now();
+      const dur = 900+Math.random()*400;
+      function animar(t){
+        const prog = Math.min((t-t0)/dur,1);
+        p.style.left = (cx+(destX-cx)*prog)+'px';
+        p.style.top = (cy+(destY-cy)*prog)+'px';
+        p.style.opacity = 1-prog;
+        if (prog<1) requestAnimationFrame(animar); else p.remove();
+      }
+      requestAnimationFrame(animar);
+    }
+  }
+
+  /* ================== MONTÍCULO DE LUZ ================== */
+  function iniciarMonticulo(){
+    const canvas = document.getElementById('lienzoMonticulo');
+    const ctx = canvas.getContext('2d');
+    function ajustar(){
+      canvas.width = canvas.clientWidth*devicePixelRatio;
+      canvas.height = canvas.clientHeight*devicePixelRatio;
+    }
+    ajustar();
+    window.addEventListener('resize', ajustar);
+
+    const base = [];
+    for (let i=0;i<420;i++){
+      const cx=0.5, groundY=0.82;
+      const spread = (Math.random()*2-1);
+      const alturaMax = 0.34*(1-Math.abs(spread));
+      const alturaRel = Math.random()*alturaMax;
+      base.push({
+        rx: cx+spread*0.42+(Math.random()*0.03-0.015),
+        ry: groundY-alturaRel+(Math.random()*0.02-0.01),
+        r: Math.random()*1.6+0.5,
+        fase: Math.random()*Math.PI*2, vel: 0.6+Math.random()*1.4
+      });
+    }
+    // luciérnagas subiendo desde el montículo
+    const luciernagas = [];
+    for (let i=0;i<24;i++){
+      luciernagas.push({ rx: 0.5+(Math.random()*0.6-0.3), ry: 0.82, vel:(0.05+Math.random()*0.08)/60, fase: Math.random()*Math.PI*2 });
+    }
+
+    let cayendo = [];
+    function spawnGota(){
+      cayendo.push({ rx:0.5+(Math.random()*0.04-0.02), ry:0, vel:0.006+Math.random()*0.004, r:Math.random()*1.4+0.6 });
+    }
+
+    let t=0;
+    function loop(){
+      t+=0.02;
+      const w=canvas.width,h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+
+      const gx=w*0.5;
+      const grad = ctx.createLinearGradient(gx,0,gx,h*0.82);
+      grad.addColorStop(0,'rgba(255,210,63,0)');
+      grad.addColorStop(0.5,'rgba(255,210,63,0.25)');
+      grad.addColorStop(1,'rgba(255,210,63,0.05)');
+      ctx.fillStyle=grad;
+      ctx.fillRect(gx-w*0.012,0,w*0.024,h*0.82);
+
+      const ringY=h*0.82;
+      const ringGrad = ctx.createRadialGradient(gx,ringY,0,gx,ringY,w*0.42);
+      ringGrad.addColorStop(0,'rgba(255,210,63,0.35)');
+      ringGrad.addColorStop(0.5,'rgba(255,183,3,0.12)');
+      ringGrad.addColorStop(1,'rgba(255,183,3,0)');
+      ctx.fillStyle=ringGrad;
+      ctx.beginPath();
+      ctx.ellipse(gx,ringY,w*0.42,h*0.05,0,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.shadowBlur=6; ctx.shadowColor='rgba(255,210,63,0.9)';
+      base.forEach(p=>{
+        const op=0.35+0.65*Math.abs(Math.sin(t*p.vel+p.fase));
+        ctx.fillStyle=`rgba(255,${200+Math.floor(op*40)},${80+Math.floor(op*60)},${op})`;
+        ctx.beginPath(); ctx.arc(p.rx*w,p.ry*h,p.r*devicePixelRatio,0,Math.PI*2); ctx.fill();
+      });
+
+      // luciérnagas
+      luciernagas.forEach(l=>{
+        l.ry -= l.vel; if (l.ry<0.2) l.ry=0.82;
+        const op = 0.3+0.5*Math.abs(Math.sin(t*1.4+l.fase));
+        ctx.fillStyle=`rgba(255,235,180,${op})`;
+        ctx.beginPath(); ctx.arc(l.rx*w,l.ry*h,1.4*devicePixelRatio,0,Math.PI*2); ctx.fill();
+      });
+
+      if (Math.random()<0.5) spawnGota();
+      cayendo.forEach(g=> g.ry+=g.vel);
+      cayendo = cayendo.filter(g=> g.ry<0.82);
+      cayendo.forEach(g=>{
+        ctx.fillStyle='rgba(255,225,150,0.9)';
+        ctx.beginPath(); ctx.arc(g.rx*w,g.ry*h,g.r*devicePixelRatio,0,Math.PI*2); ctx.fill();
+      });
+      ctx.shadowBlur=0;
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  /* ================== CORAZÓN DE LUZ (con latido) ================== */
+  function iniciarCorazon(){
+    const canvas = document.getElementById('lienzoCorazon');
+    const ctx = canvas.getContext('2d');
+    function ajustar(){
+      canvas.width = canvas.clientWidth*devicePixelRatio;
+      canvas.height = canvas.clientHeight*devicePixelRatio;
+    }
+    ajustar();
+    window.addEventListener('resize', ajustar);
+
+    const puntos = [];
+    for (let i=0;i<260;i++){
+      const ang = Math.random()*Math.PI*2;
+      const x = 16*Math.pow(Math.sin(ang),3);
+      const y = -(13*Math.cos(ang)-5*Math.cos(2*ang)-2*Math.cos(3*ang)-Math.cos(4*ang));
+      const jitter = 0.4+Math.random()*0.5;
+      puntos.push({ x:x*jitter/16, y:y*jitter/17, r:Math.random()*1.6+0.5, fase:Math.random()*Math.PI*2, vel:0.6+Math.random()*1.2 });
+    }
+
+    let t=0;
+    function loop(){
+      t+=0.02;
+      const w=canvas.width,h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const latido = 1 + 0.04*Math.sin(t*2.4);
+      const cx=w*0.5, cy=h*0.48, escala=Math.min(w,h)*0.32*latido;
+
+      ctx.shadowBlur=6; ctx.shadowColor='rgba(255,210,63,0.9)';
+      puntos.forEach(p=>{
+        const op=0.3+0.7*Math.abs(Math.sin(t*p.vel+p.fase));
+        ctx.fillStyle=`rgba(255,${200+Math.floor(op*40)},${80+Math.floor(op*60)},${op})`;
+        ctx.beginPath();
+        ctx.arc(cx+p.x*escala, cy+p.y*escala, p.r*devicePixelRatio,0,Math.PI*2);
+        ctx.fill();
+      });
+      ctx.shadowBlur=0;
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+</script>
+</body>
+</html>
